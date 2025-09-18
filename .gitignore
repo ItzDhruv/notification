@@ -1,0 +1,20 @@
+# Environment files
+.env
+
+# Dependencies
+node_modules/
+
+# Logs
+logs
+*.log
+
+# OS/system files
+.DS_Store
+Thumbs.db
+
+# Build artifacts (if any)
+dist/
+build/
+
+# Ignore all HTML test/demo files, but keep public frontend if you need it
+*.html
