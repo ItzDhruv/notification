@@ -4,7 +4,7 @@
   "description": "Multi-provider notification service with failover",
   "main": "server.js",
   "bin": {
-    "notification-service": "index.js"
+    "notification-service": "server.js"
   },
   "scripts": {
     "start": "node server.js",
