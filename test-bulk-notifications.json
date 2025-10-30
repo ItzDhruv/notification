@@ -1,0 +1,813 @@
+{
+  "description": "Comprehensive test JSON file for multi-provider notification system with failover and scheduling",
+  "system_info": {
+    "name": "@dhruvdobariya/notification-provider",
+    "version": "3.0.1",
+    "providers": ["Firebase", "OneSignal", "Pusher"],
+    "features": ["bulk_notifications", "scheduling", "failover", "validation", "rate_limiting"],
+    "api_base": "/api/notifications"
+  },
+  "test_scenarios": {
+    "firebase_bulk_notifications": {
+      "description": "Test bulk notifications using Firebase provider with tokens, topics, and platform-specific configs",
+      "endpoint": "POST /api/notifications/send/bulk",
+      "request": {
+        "notifications": [
+          {
+            "title": "Welcome to Our App!",
+            "body": "Thank you for downloading our app. Get started with these amazing features!",
+            "image": "https://example.com/images/welcome.jpg",
+            "data": {
+              "type": "welcome",
+              "action": "open_app",
+              "userId": "user123",
+              "deepLink": "myapp://welcome"
+            },
+            "tokens": [
+              "fcm_token_1_here",
+              "fcm_token_2_here",
+              "fcm_token_3_here"
+            ],
+            "android": {
+              "priority": "high",
+              "notification": {
+                "sound": "default",
+                "click_action": "FLUTTER_NOTIFICATION_CLICK",
+                "color": "#FF5722"
+              }
+            }
+          },
+          {
+            "title": "New Message Received",
+            "body": "You have a new message from John Doe. Tap to read it now.",
+            "data": {
+              "type": "message",
+              "messageId": "msg456",
+              "senderId": "user789",
+              "conversationId": "conv123"
+            },
+            "tokens": [
+              "fcm_token_4_here",
+              "fcm_token_5_here"
+            ],
+            "apns": {
+              "payload": {
+                "aps": {
+                  "sound": "message.wav",
+                  "badge": 1,
+                  "category": "MESSAGE_CATEGORY"
+                }
+              }
+            }
+          },
+          {
+            "title": "Order Update",
+            "body": "Your order #12345 has been shipped and will arrive tomorrow.",
+            "data": {
+              "type": "order_update",
+              "orderId": "12345",
+              "status": "shipped",
+              "trackingNumber": "TRK789456"
+            },
+            "topic": "order_updates",
+            "webpush": {
+              "notification": {
+                "icon": "https://example.com/icons/order.png",
+                "badge": "https://example.com/badges/order.png",
+                "actions": [
+                  {
+                    "action": "track",
+                    "title": "Track Package"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "title": "Single Token Test",
+            "body": "Testing single token notification",
+            "data": {
+              "type": "single_token_test"
+            },
+            "token": "fcm_single_token_here"
+          }
+        ],
+        "options": {
+          "provider": "firebase",
+          "enableFailover": true,
+          "timeout": 10000
+        }
+      },
+      "expected_response": {
+        "success": true,
+        "message": "Bulk notification completed: X sent, Y failed",
+        "data": {
+          "scheduled": false,
+          "total": 4,
+          "successful": "number",
+          "failed": "number",
+          "processedAt": "ISO_timestamp",
+          "results": "array_of_results"
+        }
+      }
+    },
+    "onesignal_bulk_notifications": {
+      "description": "Test bulk notifications using OneSignal provider with player IDs and segments",
+      "endpoint": "POST /api/notifications/send/bulk",
+      "request": {
+        "notifications": [
+          {
+            "title": "Daily News Update",
+            "body": "Stay informed with today's top stories and breaking news.",
+            "image": "https://example.com/images/news.jpg",
+            "data": {
+              "type": "news",
+              "category": "general",
+              "priority": "normal",
+              "articleId": "news123"
+            },
+            "playerIds": [
+              "onesignal_player_id_1",
+              "onesignal_player_id_2",
+              "onesignal_player_id_3",
+              "onesignal_player_id_4"
+            ]
+          },
+          {
+            "title": "Promotional Offer",
+            "body": "Limited time offer! Get 50% off on all premium features. Valid until midnight.",
+            "image": "https://example.com/images/promo.jpg",
+            "data": {
+              "type": "promotion",
+              "discount": "50",
+              "expires": "2024-12-31T23:59:59Z",
+              "promoCode": "SAVE50"
+            },
+            "segments": ["premium_users", "active_users"]
+          },
+          {
+            "title": "System Maintenance",
+            "body": "Scheduled maintenance will begin at 2:00 AM UTC. Some features may be temporarily unavailable.",
+            "data": {
+              "type": "system",
+              "maintenance_start": "2024-01-15T02:00:00Z",
+              "estimated_duration": "2 hours",
+              "affected_services": ["api", "dashboard"]
+            },
+            "playerIds": [
+              "onesignal_player_id_5",
+              "onesignal_player_id_6"
+            ]
+          },
+          {
+            "title": "All Users Broadcast",
+            "body": "Important announcement for all users",
+            "data": {
+              "type": "broadcast",
+              "priority": "high"
+            }
+          }
+        ],
+        "options": {
+          "provider": "onesignal",
+          "enableFailover": false
+        }
+      },
+      "expected_response": {
+        "success": true,
+        "message": "Bulk notification completed: X sent, Y failed",
+        "data": {
+          "scheduled": false,
+          "total": 4,
+          "successful": "number",
+          "failed": "number",
+          "processedAt": "ISO_timestamp",
+          "results": "array_of_results"
+        }
+      }
+    },
+    "pusher_bulk_notifications": {
+      "description": "Test bulk notifications using Pusher provider for real-time updates",
+      "endpoint": "POST /api/notifications/send/bulk",
+      "request": {
+        "notifications": [
+          {
+            "title": "Live Score Update",
+            "body": "Team A scored! Current score: Team A 2 - Team B 1",
+            "data": {
+              "type": "live_score",
+              "matchId": "match123",
+              "teamA": "Team A",
+              "teamB": "Team B",
+              "scoreA": 2,
+              "scoreB": 1,
+              "timestamp": "2024-01-15T15:30:00Z"
+            },
+            "channel": "live-scores",
+            "event": "score-update"
+          },
+          {
+            "title": "Chat Message",
+            "body": "New message in #general channel",
+            "data": {
+              "type": "chat",
+              "channel": "general",
+              "sender": "Alice",
+              "message": "Hello everyone!",
+              "messageId": "msg789"
+            },
+            "channel": "chat-general",
+            "event": "new-message"
+          },
+          {
+            "title": "File Upload Complete",
+            "body": "Your file 'document.pdf' has been successfully uploaded.",
+            "data": {
+              "type": "file_upload",
+              "fileName": "document.pdf",
+              "fileSize": "2.5MB",
+              "uploadTime": "2024-01-15T10:30:00Z",
+              "fileId": "file123"
+            },
+            "channel": "user-notifications",
+            "event": "file-uploaded"
+          },
+          {
+            "title": "Default Channel Test",
+            "body": "Testing default channel and event",
+            "data": {
+              "type": "default_test"
+            }
+          }
+        ],
+        "options": {
+          "provider": "pusher",
+          "timeout": 5000
+        }
+      },
+      "expected_response": {
+        "success": true,
+        "message": "Bulk notification completed: X sent, Y failed",
+        "data": {
+          "scheduled": false,
+          "total": 4,
+          "successful": "number",
+          "failed": "number",
+          "processedAt": "ISO_timestamp",
+          "results": "array_of_results"
+        }
+      }
+    },
+    "mixed_provider_bulk": {
+      "description": "Test bulk notifications with mixed providers (failover behavior)",
+      "endpoint": "POST /api/notifications/send/bulk",
+      "request": {
+        "notifications": [
+          {
+            "title": "Emergency Alert",
+            "body": "URGENT: System security breach detected. Please change your password immediately.",
+            "data": {
+              "type": "security",
+              "priority": "critical",
+              "action_required": true,
+              "alertId": "SEC123"
+            },
+            "tokens": ["fcm_token_emergency_1", "fcm_token_emergency_2"]
+          },
+          {
+            "title": "Feature Announcement",
+            "body": "New feature released! Check out our enhanced dashboard with real-time analytics.",
+            "data": {
+              "type": "feature",
+              "version": "2.1.0",
+              "feature": "analytics_dashboard",
+              "releaseNotes": "Enhanced analytics with real-time data"
+            },
+            "playerIds": ["onesignal_player_feature_1", "onesignal_player_feature_2"]
+          },
+          {
+            "title": "Real-time Collaboration",
+            "body": "Sarah is now editing the document. You can see her changes in real-time.",
+            "data": {
+              "type": "collaboration",
+              "documentId": "doc123",
+              "editor": "Sarah",
+              "action": "editing",
+              "lastModified": "2024-01-15T14:25:00Z"
+            },
+            "channel": "document-collaboration",
+            "event": "user-editing"
+          }
+        ],
+        "options": {
+          "enableFailover": true,
+          "timeout": 15000
+        }
+      },
+      "expected_response": {
+        "success": true,
+        "message": "Bulk notification completed: X sent, Y failed",
+        "data": {
+          "scheduled": false,
+          "total": 3,
+          "successful": "number",
+          "failed": "number",
+          "processedAt": "ISO_timestamp",
+          "results": "array_of_results"
+        }
+      }
+    },
+    "scheduled_bulk_notifications": {
+      "description": "Test scheduled bulk notifications with different timezones and frequencies",
+      "endpoint": "POST /api/notifications/send/bulk",
+      "request": {
+        "notifications": [
+          {
+            "title": "Morning Reminder",
+            "body": "Don't forget your 9 AM meeting with the development team.",
+            "data": {
+              "type": "reminder",
+              "meetingId": "meeting456",
+              "time": "09:00",
+              "attendees": ["dev_team"]
+            },
+            "tokens": ["fcm_token_morning_1", "fcm_token_morning_2"]
+          },
+          {
+            "title": "Lunch Break Reminder",
+            "body": "Time for lunch! Take a break and recharge for the afternoon.",
+            "data": {
+              "type": "wellness",
+              "category": "break_reminder",
+              "duration": "30 minutes"
+            },
+            "playerIds": ["onesignal_player_lunch_1", "onesignal_player_lunch_2"]
+          },
+          {
+            "title": "End of Day Summary",
+            "body": "Here's your daily summary: 8 tasks completed, 2 pending for tomorrow.",
+            "data": {
+              "type": "summary",
+              "completed": 8,
+              "pending": 2,
+              "productivity_score": 85
+            },
+            "channel": "daily-summary",
+            "event": "end-of-day"
+          }
+        ],
+        "schedule": {
+          "time": "09:00",
+          "timezone": "UTC",
+          "frequency": "daily"
+        },
+        "options": {
+          "enableFailover": true
+        }
+      },
+      "expected_response": {
+        "success": true,
+        "message": "Bulk notifications scheduled: X scheduled, Y failed",
+        "data": {
+          "scheduled": true,
+          "total": 3,
+          "successful": "number",
+          "failed": "number",
+          "results": "array_of_schedule_results"
+        }
+      }
+    },
+    "minimal_bulk_notifications": {
+      "description": "Test minimal bulk notifications with only required fields",
+      "endpoint": "POST /api/notifications/send/bulk",
+      "request": {
+        "notifications": [
+          {
+            "title": "Simple Notification 1",
+            "body": "This is a simple notification with minimal data.",
+            "tokens": ["fcm_token_simple_1"]
+          },
+          {
+            "title": "Simple Notification 2",
+            "body": "Another simple notification for testing purposes.",
+            "playerIds": ["onesignal_player_simple_1"]
+          },
+          {
+            "title": "Simple Notification 3",
+            "body": "Third simple notification to complete the bulk test.",
+            "channel": "simple-test",
+            "event": "test-event"
+          }
+        ]
+      },
+      "expected_response": {
+        "success": true,
+        "message": "Bulk notification completed: X sent, Y failed",
+        "data": {
+          "scheduled": false,
+          "total": 3,
+          "successful": "number",
+          "failed": "number",
+          "processedAt": "ISO_timestamp",
+          "results": "array_of_results"
+        }
+      }
+    },
+    "validation_error_tests": {
+      "description": "Test validation errors and edge cases",
+      "endpoint": "POST /api/notifications/send/bulk",
+      "test_cases": [
+        {
+          "name": "Missing targeting",
+          "request": {
+            "notifications": [
+              {
+                "title": "Invalid Notification",
+                "body": "This notification has no targeting method"
+              }
+            ]
+          },
+          "expected_error": "Notification must have at least one valid targeting method"
+        },
+        {
+          "name": "Empty notifications array",
+          "request": {
+            "notifications": []
+          },
+          "expected_error": "Notifications array must contain at least 1 item"
+        },
+        {
+          "name": "Too many notifications",
+          "request": {
+            "notifications": "array_with_101_items"
+          },
+          "expected_error": "Notifications array must contain at most 100 items"
+        },
+        {
+          "name": "Invalid time format",
+          "request": {
+            "notifications": [
+              {
+                "title": "Test",
+                "body": "Test",
+                "tokens": ["token1"]
+              }
+            ],
+            "schedule": {
+              "time": "25:00",
+              "timezone": "UTC",
+              "frequency": "once"
+            }
+          },
+          "expected_error": "Time must be in HH:MM format (24-hour)"
+        }
+      ]
+    },
+    "single_notification_tests": {
+      "description": "Test single notification endpoints",
+      "endpoints": [
+        {
+          "name": "Send Single Notification",
+          "method": "POST",
+          "url": "/api/notifications/send",
+          "request": {
+            "notification": {
+              "title": "Single Test Notification",
+              "body": "This is a test of the single notification endpoint",
+              "data": {
+                "type": "single_test",
+                "timestamp": "2024-01-15T12:00:00Z"
+              },
+              "tokens": ["fcm_single_test_token"]
+            },
+            "options": {
+              "provider": "firebase",
+              "enableFailover": true
+            }
+          }
+        },
+        {
+          "name": "Schedule Single Notification",
+          "method": "POST",
+          "url": "/api/notifications/send",
+          "request": {
+            "notification": {
+              "title": "Scheduled Test",
+              "body": "This notification is scheduled for later",
+              "tokens": ["fcm_scheduled_token"]
+            },
+            "schedule": {
+              "time": "15:30",
+              "timezone": "UTC",
+              "frequency": "once"
+            }
+          }
+        }
+      ]
+    },
+    "provider_management_tests": {
+      "description": "Test provider management endpoints",
+      "endpoints": [
+        {
+          "name": "Get Available Providers",
+          "method": "GET",
+          "url": "/api/notifications/providers",
+          "expected_response": {
+            "success": true,
+            "message": "Providers retrieved successfully",
+            "data": {
+              "providers": [
+                {
+                  "name": "Firebase",
+                  "enabled": true,
+                  "priority": 1
+                },
+                {
+                  "name": "OneSignal",
+                  "enabled": true,
+                  "priority": 2
+                },
+                {
+                  "name": "Pusher",
+                  "enabled": true,
+                  "priority": 3
+                }
+              ],
+              "total": 3,
+              "enabled": 3
+            }
+          }
+        },
+        {
+          "name": "Update Provider Status",
+          "method": "PATCH",
+          "url": "/api/notifications/providers/firebase",
+          "request": {
+            "enabled": false
+          },
+          "expected_response": {
+            "success": true,
+            "message": "Provider firebase disabled successfully",
+            "data": {
+              "provider": "firebase",
+              "enabled": false,
+              "updatedAt": "ISO_timestamp"
+            }
+          }
+        }
+      ]
+    },
+    "scheduler_management_tests": {
+      "description": "Test scheduler management endpoints",
+      "endpoints": [
+        {
+          "name": "Get All Scheduled Jobs",
+          "method": "GET",
+          "url": "/api/notifications/scheduled",
+          "expected_response": {
+            "success": true,
+            "message": "Scheduled jobs retrieved successfully",
+            "data": {
+              "jobs": "array_of_jobs",
+              "total": "number",
+              "running": true
+            }
+          }
+        },
+        {
+          "name": "Get Specific Scheduled Job",
+          "method": "GET",
+          "url": "/api/notifications/scheduled/{jobId}",
+          "expected_response": {
+            "success": true,
+            "message": "Scheduled job retrieved successfully",
+            "data": {
+              "id": "job_id",
+              "notification": "notification_object",
+              "schedule": "schedule_object",
+              "createdAt": "ISO_timestamp",
+              "status": "scheduled"
+            }
+          }
+        },
+        {
+          "name": "Cancel Scheduled Job",
+          "method": "DELETE",
+          "url": "/api/notifications/scheduled/{jobId}",
+          "expected_response": {
+            "success": true,
+            "message": "Scheduled job cancelled successfully",
+            "data": {
+              "jobId": "job_id",
+              "cancelledAt": "ISO_timestamp"
+            }
+          }
+        }
+      ]
+    },
+    "validation_endpoint_tests": {
+      "description": "Test notification validation endpoint",
+      "endpoint": {
+        "name": "Validate Notification",
+        "method": "POST",
+        "url": "/api/notifications/validate",
+        "request": {
+          "notification": {
+            "title": "Validation Test",
+            "body": "Testing notification validation",
+            "tokens": ["fcm_validation_token"],
+            "data": {
+              "type": "validation_test"
+            }
+          }
+        },
+        "expected_response": {
+          "success": true,
+          "message": "Notification validation completed",
+          "data": {
+            "valid": true,
+            "providers": [
+              {
+                "name": "Firebase",
+                "canHandle": true,
+                "valid": true
+              },
+              {
+                "name": "OneSignal",
+                "canHandle": true,
+                "valid": true
+              },
+              {
+                "name": "Pusher",
+                "canHandle": true,
+                "valid": true
+              }
+            ],
+            "errors": []
+          }
+        }
+      }
+    },
+    "health_check_test": {
+      "description": "Test health check endpoint",
+      "endpoint": {
+        "name": "Health Check",
+        "method": "GET",
+        "url": "/health",
+        "expected_response": {
+          "status": "OK",
+          "timestamp": "ISO_timestamp",
+          "service": "Notification Service",
+          "scheduler": {
+            "active": "number",
+            "running": true
+          }
+        }
+      }
+    }
+  },
+  "api_endpoints": {
+    "bulk_send": {
+      "method": "POST",
+      "url": "/api/notifications/send/bulk",
+      "description": "Send bulk notifications immediately",
+      "rate_limit": "100 requests per 15 minutes per IP"
+    },
+    "bulk_schedule": {
+      "method": "POST", 
+      "url": "/api/notifications/send/bulk",
+      "description": "Schedule bulk notifications for later delivery",
+      "note": "Include 'schedule' object in request body"
+    },
+    "single_send": {
+      "method": "POST",
+      "url": "/api/notifications/send",
+      "description": "Send single notification immediately or schedule it"
+    },
+    "validate": {
+      "method": "POST",
+      "url": "/api/notifications/validate",
+      "description": "Validate notification structure against all providers"
+    },
+    "providers": {
+      "method": "GET",
+      "url": "/api/notifications/providers",
+      "description": "Get list of available notification providers"
+    },
+    "provider_update": {
+      "method": "PATCH",
+      "url": "/api/notifications/providers/{name}",
+      "description": "Enable/disable specific provider"
+    },
+    "scheduled_jobs": {
+      "method": "GET",
+      "url": "/api/notifications/scheduled",
+      "description": "Get all scheduled jobs"
+    },
+    "scheduled_job": {
+      "method": "GET",
+      "url": "/api/notifications/scheduled/{jobId}",
+      "description": "Get specific scheduled job details"
+    },
+    "cancel_job": {
+      "method": "DELETE",
+      "url": "/api/notifications/scheduled/{jobId}",
+      "description": "Cancel scheduled job"
+    },
+    "health_check": {
+      "method": "GET",
+      "url": "/health",
+      "description": "Service health check"
+    }
+  },
+  "testing_notes": {
+    "validation": "All notifications must include at least one targeting method (tokens/topic for Firebase, playerIds/segments for OneSignal, or channel/event for Pusher)",
+    "limits": "Maximum 100 notifications per bulk request, 500 tokens per Firebase notification, 2000 player IDs per OneSignal notification",
+    "providers": "Available providers: firebase, onesignal, pusher",
+    "failover": "When enableFailover is true, the system will try providers in priority order until one succeeds",
+    "scheduling": "Schedule format: time in HH:MM (24-hour), timezone defaults to UTC, frequency can be 'once' or 'daily'",
+    "rate_limiting": "100 requests per 15 minutes per IP address",
+    "security": "Uses Helmet.js for security headers, CORS enabled, request body limit 10MB",
+    "logging": "Winston logger with separate files for errors, combined logs, and notifications",
+    "environment": "Requires environment variables for provider configuration",
+    "retry_logic": "Built-in retry mechanism with exponential backoff for failed requests"
+  },
+  "environment_variables": {
+    "firebase": {
+      "required": [
+        "FIREBASE_PROJECT_ID",
+        "FIREBASE_CLIENT_EMAIL", 
+        "FIREBASE_PRIVATE_KEY"
+      ],
+      "optional": [
+        "FIREBASE_ENABLED",
+        "FIREBASE_PRIVATE_KEY_ID",
+        "FIREBASE_CLIENT_ID",
+        "FIREBASE_AUTH_URI",
+        "FIREBASE_TOKEN_URI"
+      ]
+    },
+    "onesignal": {
+      "required": [
+        "ONESIGNAL_APP_ID",
+        "ONESIGNAL_REST_API_KEY"
+      ],
+      "optional": [
+        "ONESIGNAL_ENABLED"
+      ]
+    },
+    "pusher": {
+      "required": [
+        "PUSHER_APP_ID",
+        "PUSHER_KEY",
+        "PUSHER_SECRET",
+        "PUSHER_CLUSTER"
+      ],
+      "optional": [
+        "PUSHER_ENABLED"
+      ]
+    },
+    "general": {
+      "optional": [
+        "PORT",
+        "LOG_LEVEL",
+        "NODE_ENV"
+      ]
+    }
+  },
+  "sample_curl_commands": {
+    "firebase_bulk": "curl -X POST http://localhost:3000/api/notifications/send/bulk -H 'Content-Type: application/json' -d @firebase_bulk_test.json",
+    "onesignal_bulk": "curl -X POST http://localhost:3000/api/notifications/send/bulk -H 'Content-Type: application/json' -d @onesignal_bulk_test.json",
+    "pusher_bulk": "curl -X POST http://localhost:3000/api/notifications/send/bulk -H 'Content-Type: application/json' -d @pusher_bulk_test.json",
+    "scheduled_bulk": "curl -X POST http://localhost:3000/api/notifications/send/bulk -H 'Content-Type: application/json' -d @scheduled_bulk_test.json",
+    "single_notification": "curl -X POST http://localhost:3000/api/notifications/send -H 'Content-Type: application/json' -d @single_notification_test.json",
+    "validate_notification": "curl -X POST http://localhost:3000/api/notifications/validate -H 'Content-Type: application/json' -d @validation_test.json",
+    "get_providers": "curl -X GET http://localhost:3000/api/notifications/providers",
+    "get_scheduled_jobs": "curl -X GET http://localhost:3000/api/notifications/scheduled",
+    "health_check": "curl -X GET http://localhost:3000/health"
+  },
+  "test_data_files": {
+    "firebase_bulk_test.json": "Extract firebase_bulk_notifications request object",
+    "onesignal_bulk_test.json": "Extract onesignal_bulk_notifications request object", 
+    "pusher_bulk_test.json": "Extract pusher_bulk_notifications request object",
+    "scheduled_bulk_test.json": "Extract scheduled_bulk_notifications request object",
+    "single_notification_test.json": "Extract single_notification_tests request object",
+    "validation_test.json": "Extract validation_endpoint_tests request object"
+  },
+  "performance_considerations": {
+    "bulk_processing": "Bulk notifications are processed sequentially, not in parallel",
+    "timeout_settings": "Default timeout is provider-specific, can be overridden in options",
+    "memory_usage": "Large bulk requests (100 notifications) may consume significant memory",
+    "rate_limiting": "Built-in rate limiting prevents API abuse",
+    "retry_mechanism": "Automatic retry with exponential backoff for failed requests",
+    "logging_overhead": "Comprehensive logging may impact performance in high-volume scenarios"
+  },
+  "error_handling": {
+    "validation_errors": "400 Bad Request with detailed error messages",
+    "provider_errors": "Provider-specific error messages with fallback to next provider",
+    "timeout_errors": "408 Request Timeout for long-running operations",
+    "rate_limit_errors": "429 Too Many Requests when rate limit exceeded",
+    "server_errors": "500 Internal Server Error with error details in development",
+    "not_found_errors": "404 Not Found for invalid endpoints or job IDs"
+  }
+}
